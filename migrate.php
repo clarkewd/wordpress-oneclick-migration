@@ -33,6 +33,8 @@
  *
  */
 
+$_GET['forced'] = 1;
+
 if ( !defined('ABSPATH') )
         define('ABSPATH', dirname(__FILE__) . '/');
 
@@ -137,6 +139,7 @@ $migrated = (0 == strcmp($old_url, $new_url))?true:false;
 // manually force it?
 $migrated = (isset($_REQUEST['forced']) && $_REQUEST['forced'])?false:$migrated;
 
+
 // check if we need to migrate?
 if ($migrated) {
     header('Location: '.$new_url);
@@ -168,7 +171,7 @@ if (isset($_POST['submit']) and !$migrated) {
     // Postmeta
     $postmeta = "UPDATE $wpdb->postmeta SET meta_value = replace(meta_value, '" . $old_url . "','" . $new_url . "')";
     $result = $wpdb->query( $postmeta );
-	
+
 	// update user meta just incase we have database prefix changes
 	$user_meta_keys = array('capabilities','user_level','user-settings','user-settings-time','dashboard_quick_press_last_post_id');
 	foreach($user_meta_keys as $meta_key) {
@@ -179,7 +182,7 @@ if (isset($_POST['submit']) and !$migrated) {
 							meta_key LIKE '%".$meta_key."';";
 		$result = $wpdb->query( $usermeta );
 	}
-	
+
 	// update user roles options just incase we have database prefix changes
 	$user_roles = "UPDATE $wpdb->options
 					SET
@@ -187,7 +190,7 @@ if (isset($_POST['submit']) and !$migrated) {
 					WHERE
 						option_name LIKE '%user_roles';";
 	$result = $wpdb->query( $user_roles );
-	
+
 	// TODO: possbly check custom tables made by plugins
 
     // we have migrate all the core data
@@ -203,10 +206,14 @@ if (isset($_POST['submit']) and !$migrated) {
 <html>
     <head>
         <title>WordPress OneClick Migration</title>
-        <link rel='stylesheet' id='login-css'  href='/wp-admin/css/login.css' type='text/css' media='all' />
-        <link rel='stylesheet' id='colors-fresh-css'  href='/wp-admin/css/colors-fresh.css' type='text/css' media='all' />
+
+	<link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+
+
+
         <style>
-            #migrate { margin: 7em auto; width: 480px; }
+            body { margin: 0 auto; width: 480px; }
+            #migrate { margin: 4em auto; width: 480px; }
             h1 a { width: 486px; }
             #intro, #status, #selfdestruct { padding: 10px;
                      background: #FBFBFB;
@@ -224,6 +231,12 @@ if (isset($_POST['submit']) and !$migrated) {
             #intro strong, #notice strong {color: #21759B;}
             #notice { margin: 0 0 0 8px; padding: 16px;text-shadow: 0 1px 0 #FFFFFF;}
 
+            input[type="text"] {
+            	width: 100%;
+            }
+            label {
+            	width: 100%;
+            }
             input[type="checkbox"] {
                 background: none repeat scroll 0 0 #FBFBFB;
                 border: 1px solid #E5E5E5;
@@ -255,7 +268,10 @@ if (isset($_POST['submit']) and !$migrated) {
             <form name="migrateform" id="migrateform" action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
                 <p id="intro"><strong>WordPress OneClick Migration</strong><br />This script will update site information on your new site.</p>
                 <?php if($migrated) { ?>
-                <p id="status" class="migrated"><strong>Migration complete.</strong><br /><br /><a href="<?php bloginfo('url'); ?>/" title="<?php _e('Are you lost?') ?>"><?php printf(__('Back to %s &rarr;'), get_bloginfo('title', 'display')); ?></a></p>
+                <p id="status" class="migrated"><strong>Migration complete.</strong></p>
+                <p>
+                	<a class="btn btn-default" href="?">Migrate Again</a>
+                </p>
                 <?php
                 if($runmeonce) {
                     echo self_destruct($runmeonce);
@@ -263,27 +279,27 @@ if (isset($_POST['submit']) and !$migrated) {
                 <?php } else { ?>
                 <p>
                     <label>Old URL<br />
-                        <input type="text" name="old_url" id="old_url" class="input" value="<?php echo $old_url; ?>" size="20" tabindex="10" /></label>
+                        <input type="text" name="old_url" id="old_url" class="input form-control" value="<?php echo $old_url; ?>" size="20" tabindex="10" /></label>
                 </p>
                 <p>
 
                     <label>New URL<br />
-                        <input type="text" name="new_uri" id="new_uri" class="input" value="<?php echo $new_url; ?>" size="20" tabindex="20" /></label>
+                        <input type="text" name="new_uri" id="new_uri" class="input form-control" value="<?php echo $new_url; ?>" size="20" tabindex="20" /></label>
                 </p>
                 <p class="runmeonce">
                     <label>Delete after migration?<br />
                         <input name="runme" type="checkbox" id="runme" value="runonce" tabindex="90" /> Yes, Please</label>
                 </p>
                 <p class="submit">
-                    <input type="submit" name="submit" id="submit" class="button-primary" value="Update Site Information" tabindex="100" />
+                    <input type="submit" name="submit" id="submit" class="btn btn-primary" value="Update Site Information" tabindex="100" />
                     <input type="hidden" name="forced" value="<?php echo (isset($_REQUEST['forced'])?'1':'0'); ?>" />
                 </p>
                 <?php } ?>
             </form>
-                <p id="notice"><strong>WordPress OneClick Migration</strong> Copyright (C) 2011 <a href="http://azizur-rahman.co.uk/?utm_source=wordpress-oneclick-migration&utm_medium=github&utm_campaign=wordpress-oneclick-migration">Azizur Rahman</a><br /><br />This program comes with ABSOLUTELY NO WARRANTY; This is free software, and you are welcome to redistribute it under certain conditions;<br /><strong><a href="http://www.gnu.org/licenses/gpl-3.0.html">GPLv3</a></strong></p>
+
 
         </div>
-        <p id="backtoblog"><a href="<?php bloginfo('url'); ?>/" title="<?php _e('Are you lost?') ?>"><?php printf(__('&larr; Back to %s'), get_bloginfo('title', 'display')); ?></a></p>
+        <p id="backtoblog"><a class="btn btn-default" href="<?php bloginfo('url'); ?>/" title="<?php _e('Are you lost?') ?>"><?php printf(__('&larr; Back to %s'), get_bloginfo('title', 'display')); ?></a></p>
 
         <!-- javascripts -->
         <script type='text/javascript' src='/wp-includes/js/jquery/jquery.js?'></script>
