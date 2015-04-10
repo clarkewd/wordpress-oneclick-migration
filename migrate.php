@@ -60,6 +60,13 @@ defined('WP_DEBUG') or define('WP_DEBUG', true);
  * @param type $new_url migrate to url
  */
 function update_site_options(array $options, $old_url, $new_url) {
+
+
+    global $wpdb;
+    $sql = " update ".$wpdb->prefix."options set option_value = '".addslashes($new_url)."' where option_name = 'siteurl' ";
+    $results = $wpdb->get_results($sql);
+
+
     foreach ($options as $option_name => $option_value) {
 
         if (FALSE === strpos($option_value, $old_url)) {
